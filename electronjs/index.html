@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>Serial wkwkwwkkw</title>
+    <title>Serial</title>
     <h1>Komunikasi Serial</h1>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <label for="val">Message : </label>
@@ -11,7 +11,29 @@
     <button id="send">Send</button>
   </head>
   <body>
-    <p>Output:</p>
-    <label id="output"></label>
+    <div id="port-info">
+      <h3>Port yg terdeteksi:</h3>
+      <pre id="port-list"></pre>
+    </div>
+    <label id="output">Output</label>
+    <span id="outval">ding</span>
+    <div id="error"></div>
+    <div id="ports"></div>
+    <script src="./rendered.js"></script>
+    <script>
+      window.electron.receiveSerialPorts((ports) => {
+        const portsList = document.getElementById('ports-list');
+        portsList.textContent = JSON.stringify(ports, null, 2);
+      });
+      document.getElementById('send').addEventListener('click', () => {
+        const message = document.getElementById('val').value;
+        window.electron.sendSerialData(message);
+      });
+
+      window.electron.receiveSerialData((data) => {
+        console.log('Data masuk ke frontend:', data); // Debugging
+        document.getElementById('outval').textContent = data;
+      });
+    </script>
   </body>
 </html>

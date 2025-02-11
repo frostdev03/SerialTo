@@ -21,14 +21,14 @@ def stm_detected():
             print(f"Error membuka port: {e}")
     else:
         port_label.config(text="STM32 tidak ditemukan", fg="red")
-    root.after(100, stm_detected)  # delay deteksi
+    root.after(100, stm_detected)  # delay 
 
 def read_serial_data():
     if ser and ser.in_waiting > 0:
         try:
             data = ser.readline().decode('utf-8').strip()  # read
             t_output.insert(tk.END, data + "\n")  # show
-            t_output.see(tk.END)  # always show latest data
+            t_output.see(tk.END)  # latest
         except Exception as e:
             print(f"Kesalahan membaca data serial: {e}")
     root.after(100, read_serial_data)  # delay pembacaan
