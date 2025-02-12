@@ -18,4 +18,6 @@ contextBridge.exposeInMainWorld('electron', {
   receiveSerialData: (callback) =>
     ipcRenderer.on('receive-serial-data', (event, data) => callback(data)),
   sendSerialData: (data) => ipcRenderer.send('send-serial-data', data),
+  // on: (channel, callback) =>
+  //   ipcRenderer.on(channel, (event, ...args) => callback(...args)),
 });
