@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>STM32 Serial Monitor</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+      }
+      #data-container {
+        max-height: 400px;
+        overflow-y: auto;
+        border: 1px solid #ccc;
+        padding: 10px;
+      }
+      li {
+        margin: 5px 0;
+      }
+    </style>
+    <label for="val">Message : </label>
+    <input type="text" id="val" name="val" />
+    <button id="send">Send</button>
+    <label for="port-select">Pilih Port:</label>
+    <select id="port-select"></select>
+    <button id="connect">Connect</button>
+  </head>
+  <body>
+    <h1>Serial Monitor STM32</h1>
+    <div id="data-container">
+      <ul id="data-list"></ul>
+    </div>
+    <script src="renderer.js"></script>
+  </body>
+</html>
