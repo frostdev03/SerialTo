@@ -34,8 +34,13 @@ function openPort(selectedPort) {
   const parser = port.pipe(new ReadlineParser({ delimiter: "\r\n" }));
 
   parser.on("data", (data) => {
-    console.log("Data STM32:", data.trim());
-    win.webContents.send("serial-data", data.trim());
+    try {
+      const jsonData = JSON.parse(data);
+      console.log("Data json:", jsonData);
+
+      win.webContents.send("serial-data", jsonData);
+    } catch (error) {}
+    console.log("data:", data.trim());
   });
 
   console.log("Port terbuka:", selectedPort);
@@ -51,6 +56,14 @@ ipcMain.on("select-port", (event, selectedPort) => {
     openPort(selectedPort);
   }
 });
+
+// ipcMain.on("send-serial", (event, message) => {
+//   if (port && port.isOpen) {
+//     port.write(message + "\n");
+//   } else {
+//     console.log("port tertutup");
+//   }
+// });
 
 ipcMain.on("send-serial", (event, message) => {
   console.log("Mengirim ke STM32:", message);

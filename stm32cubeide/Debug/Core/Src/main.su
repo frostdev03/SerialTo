@@ -1,0 +1,5 @@
+main.c:14:6:Insert_SensorData	16	static
+main.c:32:5:main	576	static
+main.c:63:6:SystemClock_Config	96	static
+main.c:112:13:MX_GPIO_Init	16	static
+main.c:127:6:Error_Handler	4	static,ignoring_inline_asm
