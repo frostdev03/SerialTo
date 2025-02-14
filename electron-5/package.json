@@ -1,6 +1,6 @@
 {
   "name": "electronjs",
-  "version": "0.0.1",
+  "version": "0.0.5",
   "description": "komunikasi serial dasar",
   "main": "main.js",
   "scripts": {
@@ -25,5 +25,12 @@
   "engines": {
     "node": "18.16.1",
     "npm": "9.5.1"
+  },
+  "build": {
+    "appId": "com.jala.app",
+    "productName": "appdesk-baruno",
+    "win": {
+      "target": "nsis"
+    }
   }
 }

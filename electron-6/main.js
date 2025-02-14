@@ -1,5 +1,6 @@
-const { app, BrowserWindow, ipcMain } = require("electron");
+const { dialog, app, BrowserWindow, ipcMain } = require("electron");
 const { SerialPort, ReadlineParser } = require("serialport");
+const path = require("path");
 
 let win;
 let port;
@@ -37,21 +38,17 @@ function openPort(selectedPort) {
     try {
       console.log("Data mentah dari serial:", data);
 
-      // Cari awal JSON
       const jsonStart = data.indexOf("[");
       if (jsonStart === -1) {
         console.error("JSON tidak ditemukan dalam data:", data);
         return;
       }
 
-      // Ambil hanya bagian JSON
       data = data.substring(jsonStart).trim();
 
-      // Parsing JSON
       const jsonData = JSON.parse(data);
       console.log("Data setelah parse di main.js:", jsonData);
 
-      // Kirim ke frontend jika valid
       if (Array.isArray(jsonData)) {
         win.webContents.send("serial-data", jsonData);
       } else {
@@ -76,14 +73,6 @@ ipcMain.on("select-port", (event, selectedPort) => {
   }
 });
 
-// ipcMain.on("send-serial", (event, message) => {
-//   if (port && port.isOpen) {
-//     port.write(message + "\n");
-//   } else {
-//     console.log("port tertutup");
-//   }
-// });
-
 ipcMain.on("send-serial", (event, message) => {
   console.log("Mengirim ke STM32:", message);
   if (port && port.isOpen) {
@@ -94,6 +83,20 @@ ipcMain.on("send-serial", (event, message) => {
     });
   } else {
     console.error("Port serial tidak terbuka!");
+  }
+});
+
+ipcMain.on("save-excel", async (event) => {
+  const result = await dialog.showSaveDialog({
+    title: "Simpan Data Sensor",
+    defaultPath: path.join(app.getPath("desktop"), "Data_Sensor.xlsx"),
+    filters: [{ name: "Excel Files", extensions: ["xlsx"] }],
+  });
+
+  if (!result.canceled && result.filePath) {
+    event.sender.send("save-excel-path", result.filePath);
+  } else {
+    event.sender.send("save-excel-path", null);
   }
 });
 

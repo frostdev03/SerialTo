@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>STM32 Serial Monitor</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 25px;
+      }
+      #data-container {
+        max-height: 400px;
+        overflow-y: auto;
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin-bottom: 20px;
+      }
+      #debug-container {
+        background-color: #f0f0f0;
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin-top: 20px;
+        height: 150px;
+        overflow-y: auto;
+      }
+      li {
+        margin: 5px 0;
+        padding: 5px;
+        border-bottom: 1px solid #eee;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Serial Monitor STM32</h1>
+
+    <div class="controls">
+      <label for="val">Message: </label>
+      <input type="text" id="val" name="val" />
+      <button id="send">Send</button>
+
+      <label for="port-select">Port: </label>
+      <select id="port-select"></select>
+      <button id="connect">Connect</button>
+      <button id="get-data">Get Data</button>
+      <button id="clear">Clear</button>
+      <button id="download">Download</button>
+    </div>
+
+    <table id="data-table" border="3">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Temperature (°C)</th>
+          <th>Humidity (%)</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <div id="debug-container">
+      <h3>Debug Messages:</h3>
+      <div id="debug"></div>
+    </div>
+
+    <script src="renderer.js"></script>
+  </body>
+</html>
