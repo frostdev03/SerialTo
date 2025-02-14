@@ -23,6 +23,6 @@ Proyek ini mencakup eksperimen dan implementasi STM32L443, mulai dari komunikasi
    - Membangun file `.exe` untuk distribusi
 
 ## Catatan
-Maih tahap pengembangan
+Masih tahap pengembangan.
 
 cheers
