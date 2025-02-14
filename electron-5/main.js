@@ -33,14 +33,43 @@ function openPort(selectedPort) {
 
   const parser = port.pipe(new ReadlineParser({ delimiter: "\r\n" }));
 
+  //   parser.on("data", (data) => {
+  //     try {
+  //       const jsonData = JSON.parse(data);
+  //       console.log("Data json:", jsonData);
+
+  //       win.webContents.send("serial-data", jsonData);
+  //     } catch (error) {}
+  //     console.log("data:", data.trim());
+  //   });
+
   parser.on("data", (data) => {
     try {
-      const jsonData = JSON.parse(data);
-      console.log("Data json:", jsonData);
+      console.log("Data mentah dari serial:", data);
 
-      win.webContents.send("serial-data", jsonData);
-    } catch (error) {}
-    console.log("data:", data.trim());
+      // Cari posisi awal JSON dengan karakter '['
+      const jsonStart = data.indexOf("[");
+      if (jsonStart === -1) {
+        console.error("JSON tidak ditemukan dalam data:", data);
+        return;
+      }
+
+      // Ambil hanya bagian JSON
+      data = data.substring(jsonStart).trim();
+
+      // Parsing JSON
+      const jsonData = JSON.parse(data);
+      console.log("Data setelah parse di main.js:", jsonData);
+
+      // Kirim ke frontend jika valid
+      if (Array.isArray(jsonData)) {
+        win.webContents.send("serial-data", jsonData);
+      } else {
+        console.error("Format JSON tidak valid:", jsonData);
+      }
+    } catch (error) {
+      console.error("Gagal parse data:", error);
+    }
   });
 
   console.log("Port terbuka:", selectedPort);

@@ -17,11 +17,6 @@ document.addEventListener("DOMContentLoaded", () => {
   debugLog("Application started");
 });
 
-document.getElementById("get-data").addEventListener("click", () => {
-  debugLog("Requesting data from STM32...");
-  ipcRenderer.send("send-serial", "data");
-});
-
 ipcRenderer.on("available-ports", (event, ports) => {
   portSelect.innerHTML = "";
   ports.forEach((port) => {
@@ -51,10 +46,22 @@ document.getElementById("send").addEventListener("click", () => {
 document.getElementById("clear").addEventListener("click", () => {
   ipcRenderer.send("send-serial", "clear");
   console.log("Mengirim perintah: clear");
+
+  const tableBody = document.querySelector("#data-table tbody");
+  if (tableBody) {
+    tableBody.innerHTML = "";
+    console.log("Tabel telah dikosongkan!");
+  }
 });
+
+// document.getElementById("get-data").addEventListener("click", () => {
+//   debugLog("Requesting data from STM32...");
+//   ipcRenderer.send("send-serial", "data");
+// });
 
 document.getElementById("get-data").addEventListener("click", () => {
   ipcRenderer.send("send-serial", "data");
+  debugLog("Requesting data from STM32...");
   console.log("Meminta data dari STM32...");
 
   setTimeout(() => {
@@ -63,44 +70,79 @@ document.getElementById("get-data").addEventListener("click", () => {
   }, 1000);
 });
 
-// Tambahkan listener untuk menerima data serial
+// listener menerima data serial
+// ipcRenderer.on("serial-data", (event, data) => {
+//   console.log("Data diterima:", data);
+
+//   const tableBody = document.querySelector("#data-table tbody");
+//   if (!tableBody) {
+//     console.error("Tabel tidak ditemukan");
+//     return;
+//   }
+
+//   try {
+//     if (typeof data === "string" && data.trim().startsWith("[")) {
+//       const jsonData = JSON.parse(data.trim());
+
+//       console.log("Data setelah parse:", data);
+
+//       if (!Array.isArray(data)) {
+//         console.warn("Data bukan array:", data);
+//         return;
+//       }
+
+//       datalist.innerHTML = "";
+
+//       jsonData.forEach((item) => {
+//         console.log("Menambahkan baris ke tabel:", item);
+
+//         const row = document.createElement("tr");
+//         row.innerHTML = `
+//           <td>${item.id}</td>
+//           <td>${item.temperature.toFixed(2)}</td>
+//           <td>${item.humidity.toFixed(2)}</td>
+//         `;
+//         tableBody.appendChild(row);
+//       });
+//     } else {
+//       console.warn("Format data tidak sesuai untuk ditampilkan di tabel.");
+//     }
+//   } catch (error) {
+//     console.error("Error parsing data:", error);
+//   }
+// });
+
 ipcRenderer.on("serial-data", (event, data) => {
-  console.log("Data diterima:", data);
+  console.log("Data diterima (mentah):", data);
 
   const tableBody = document.querySelector("#data-table tbody");
   if (!tableBody) {
-    console.error("Tabel tidak ditemukan");
+    console.error("Element data-table tbody tidak ditemukan!");
     return;
   }
 
   try {
-    if (typeof data === "string" && data.trim().startsWith("[")) {
-      const jsonData = JSON.parse(data.trim());
+    // array (?)
+    if (!Array.isArray(data)) {
+      console.warn("Data bukan array:", data);
+      return;
+    }
 
-      console.log("Data setelah parse:", data);
+    tableBody.innerHTML = "";
 
-      if (!Array.isArray(data)) {
-        console.warn("Data bukan array:", data);
-        return;
-      }
-
-      datalist.innerHTML = "";
-
-      jsonData.forEach((item) => {
-        console.log("Menambahkan baris ke tabel:", item);
-
-        const row = document.createElement("tr");
-        row.innerHTML = `
+    data.forEach((item) => {
+      console.log("Menambahkan ke tabel:", item);
+      const row = document.createElement("tr");
+      row.innerHTML = `
           <td>${item.id}</td>
           <td>${item.temperature.toFixed(2)}</td>
           <td>${item.humidity.toFixed(2)}</td>
         `;
-        tableBody.appendChild(row);
-      });
-    } else {
-      console.warn("Format data tidak sesuai untuk ditampilkan di tabel.");
-    }
+      tableBody.appendChild(row);
+    });
+
+    console.log("Tabel berhasil diperbarui!");
   } catch (error) {
-    console.error("Error parsing data:", error);
+    console.error("Error parsing atau menampilkan data:", error);
   }
 });
