@@ -1,4 +1,4 @@
-# STM32L443 Project
+# STM32L443 Project SerialTo
 
 ## Overview
 Proyek ini mencakup eksperimen dan implementasi STM32L443, mulai dari komunikasi serial hingga pembuatan aplikasi desktop dengan Electron.js.
