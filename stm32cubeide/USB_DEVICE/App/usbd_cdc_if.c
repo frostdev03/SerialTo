@@ -22,76 +22,9 @@
 /* Includes ------------------------------------------------------------------*/
 #include "usbd_cdc_if.h"
 
-/* USER CODE BEGIN INCLUDE */
-
-/* USER CODE END INCLUDE */
-
-/* Private typedef -----------------------------------------------------------*/
-/* Private define ------------------------------------------------------------*/
-/* Private macro -------------------------------------------------------------*/
-
-/* USER CODE BEGIN PV */
-/* Private variables ---------------------------------------------------------*/
-
-/* USER CODE END PV */
-
-/** @addtogroup STM32_USB_OTG_DEVICE_LIBRARY
-  * @brief Usb device library.
-  * @{
-  */
-
-/** @addtogroup USBD_CDC_IF
-  * @{
-  */
-
-/** @defgroup USBD_CDC_IF_Private_TypesDefinitions USBD_CDC_IF_Private_TypesDefinitions
-  * @brief Private types.
-  * @{
-  */
-
-/* USER CODE BEGIN PRIVATE_TYPES */
-
-/* USER CODE END PRIVATE_TYPES */
-
-/**
-  * @}
-  */
-
-/** @defgroup USBD_CDC_IF_Private_Defines USBD_CDC_IF_Private_Defines
-  * @brief Private defines.
-  * @{
-  */
-
-/* USER CODE BEGIN PRIVATE_DEFINES */
-/* USER CODE END PRIVATE_DEFINES */
-
-/**
-  * @}
-  */
-
-/** @defgroup USBD_CDC_IF_Private_Macros USBD_CDC_IF_Private_Macros
-  * @brief Private macros.
-  * @{
-  */
-
-/* USER CODE BEGIN PRIVATE_MACRO */
-
-/* USER CODE END PRIVATE_MACRO */
-
-/**
-  * @}
-  */
-
-/** @defgroup USBD_CDC_IF_Private_Variables USBD_CDC_IF_Private_Variables
-  * @brief Private variables.
-  * @{
-  */
-/* Create buffer for reception and transmission           */
-/* It's up to user to redefine and/or remove those define */
 /** Received data over USB are stored in this buffer      */
-uint8_t UserRxBufferFS[APP_RX_DATA_SIZE];
 
-/** Data to send over USB CDC are stored in this buffer   */
+uint8_t UserRxBufferFS[APP_RX_DATA_SIZE];
 uint8_t UserTxBufferFS[APP_TX_DATA_SIZE];
 
 /* USER CODE BEGIN PRIVATE_VARIABLES */
@@ -270,6 +203,9 @@ static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
 
 //#define TABLE_SIZE (sizeof(num) / sizeof(num[0]))
 
+char receiveCommand[64];
+volatile uint8_t dataReady = 0;
+
 static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
 {
 //	if (*Len > 0)
@@ -283,6 +219,17 @@ static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
 //			CDC_Transmit_FS((uint8_t*) error_msg, strlen(error_msg));
 //		}
 //	}
+
+	Buf[*Len] = '\0'; // Pastikan string null-terminated
+	USB_SendData("Data diterima: ");
+	USB_SendData((char*)Buf);
+	USB_SendData("\r\n");
+
+	if (*Len < sizeof(receiveCommand)) {
+	        memcpy(receiveCommand, Buf, *Len);
+	        receiveCommand[*Len] = '\0'; // Null-terminate string
+	        dataReady = 1;
+	    }
   USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
   USBD_CDC_ReceivePacket(&hUsbDeviceFS);
   return (USBD_OK);

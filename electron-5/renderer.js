@@ -56,15 +56,20 @@ document.getElementById("clear").addEventListener("click", () => {
 document.getElementById("get-data").addEventListener("click", () => {
   ipcRenderer.send("send-serial", "data");
   console.log("Meminta data dari STM32...");
+
+  setTimeout(() => {
+    console.log("Memeriksa ulang tabel...");
+    console.log(document.querySelector("#data-table tbody").innerHTML);
+  }, 1000);
 });
 
 // Tambahkan listener untuk menerima data serial
 ipcRenderer.on("serial-data", (event, data) => {
   console.log("Data diterima:", data);
 
-  const datalist = document.getElementById("data-list");
-  if (!datalist) {
-    console.error("Element data-list tidak ditemukan!");
+  const tableBody = document.querySelector("#data-table tbody");
+  if (!tableBody) {
+    console.error("Tabel tidak ditemukan");
     return;
   }
 
@@ -72,32 +77,30 @@ ipcRenderer.on("serial-data", (event, data) => {
     if (typeof data === "string" && data.trim().startsWith("[")) {
       const jsonData = JSON.parse(data.trim());
 
+      console.log("Data setelah parse:", data);
+
+      if (!Array.isArray(data)) {
+        console.warn("Data bukan array:", data);
+        return;
+      }
+
       datalist.innerHTML = "";
 
       jsonData.forEach((item) => {
-        const li = document.createElement("li");
-        li.textContent = `ID: ${
-          item.id
-        }, Temperature: ${item.temperature.toFixed(
-          2
-        )}°C, Humidity: ${item.humidity.toFixed(2)}%`;
-        li.style.padding = "5px";
-        li.style.borderBottom = "1px solid #eee";
-        datalist.appendChild(li);
+        console.log("Menambahkan baris ke tabel:", item);
+
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${item.id}</td>
+          <td>${item.temperature.toFixed(2)}</td>
+          <td>${item.humidity.toFixed(2)}</td>
+        `;
+        tableBody.appendChild(row);
       });
     } else {
-      const li = document.createElement("li");
-      li.textContent =
-        typeof data === "object" ? JSON.stringify(data, null, 2) : data;
-      li.style.padding = "5px";
-      li.style.color = "blue";
-      datalist.appendChild(li);
+      console.warn("Format data tidak sesuai untuk ditampilkan di tabel.");
     }
   } catch (error) {
     console.error("Error parsing data:", error);
-    const li = document.createElement("li");
-    li.textContent = `Error: ${error.message}`;
-    li.style.color = "red";
-    datalist.appendChild(li);
   }
 });

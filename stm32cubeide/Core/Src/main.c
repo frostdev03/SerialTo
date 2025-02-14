@@ -1,5 +1,7 @@
 #include "main.h"
 #include "usb_device.h"
+//#include "usbd_cdc_if.c"
+//#include "usb_device.c"
 
 #define DATA_COUNT 10
 
@@ -10,6 +12,8 @@ typedef struct {
 } SensorData;
 
 SensorData sensorData[DATA_COUNT];
+char receiveCommand[64];
+extern volatile uint8_t dataReady;
 
 void Insert_SensorData(void) {
     for (int i = 0; i < DATA_COUNT; i++) {
@@ -19,11 +23,20 @@ void Insert_SensorData(void) {
     }
 }
 
-//void USB_SendData(const char *data) {
-//    while(CDC_Transmit_FS((uint8_t*)data, strlen(data)) == USBD_BUSY)
-//    {
-//    	HAL_Delay(5);
+//USB_SendData();
+
+void USB_SendData(const char *data)
+{
+	CDC_Transmit_FS((uint8_t*)data, strlen(data));
+}
+
+//extern uint8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len) {
+//    if (*Len < sizeof(receiveCommand)) {
+//        memcpy(receiveCommand, Buf, *Len);
+//        receiveCommand[*Len] = '\0'; // Null-terminate string
+//        dataReady = 1; // Set flag bahwa data diterima
 //    }
+//    return USBD_OK;
 //}
 
 void SystemClock_Config(void);
@@ -38,28 +51,42 @@ int main(void) {
     Insert_SensorData();
 
     while (1) {
-        int offset = 0;
-        offset += snprintf(jsonBuffer + offset, sizeof(jsonBuffer) - offset, "[");
+    	if (dataReady)
+    	{
+            USB_SendData("Perintah diterima: ");
+            USB_SendData(receiveCommand);
+            USB_SendData("\r\n");
 
-        for (int i = 0; i < DATA_COUNT; i++) {
-            offset += snprintf(jsonBuffer + offset, sizeof(jsonBuffer) - offset,
-                               "{\"id\":%d,\"temperature\":%.2f,\"humidity\":%.2f}%s",
-                               sensorData[i].id, sensorData[i].temperature, sensorData[i].humidity,
-                               (i == DATA_COUNT - 1) ? "" : ",");
-        }
+            if (strcmp(receiveCommand, "data") == 0) {
+                USB_SendData("Mengirimkan data sensor...\r\n");
+            } else if (strcmp(receiveCommand, "clear") == 0) {
+                USB_SendData("Menghapus data...\r\n");
+            }
 
-        snprintf(jsonBuffer + offset, sizeof(jsonBuffer) - offset, "]\r\n");
+    		dataReady = 0;
 
-        USB_SendData(jsonBuffer);
-        HAL_Delay(5000);
+    		if (strncmp(receiveCommand, "data", 4) == 0)
+    		{
+    			Insert_SensorData();
+
+    			int offset = 0;
+    			offset += snprintf(jsonBuffer + offset, sizeof(jsonBuffer) - offset, "[");
+    			for (int i = 0; i < DATA_COUNT; i++) {
+    				offset += snprintf(jsonBuffer + offset, sizeof(jsonBuffer) - offset,
+    						"{\"id\":%d,\"temperature\":%.2f,\"humidity\":%.2f}%s",
+							sensorData[i].id, sensorData[i].temperature, sensorData[i].humidity,
+							(i == DATA_COUNT - 1) ? "" : ",");
+    			}
+                snprintf(jsonBuffer + offset, sizeof(jsonBuffer) - offset, "]\r\n");
+                USB_SendData(jsonBuffer);
+    		} else if (strncmp(receiveCommand, "clear", 5) == 0) { // reset data
+                memset(sensorData, 0, sizeof(sensorData));
+                USB_SendData("Data cleared\r\n");
+            }
+    	}
     }
 }
 
-
-/**
-  * @brief System Clock Configuration
-  * @retval None
-  */
 void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};

@@ -57,10 +57,10 @@ extern USBD_DescriptorsTypeDef FS_Desc;
  */
 /* USER CODE BEGIN 1 */
 
-void USB_SendData(const char *data)
-{
-	CDC_Transmit_FS((uint8_t*)data, strlen(data));
-}
+//void USB_SendData(const char *data)
+//{
+//	CDC_Transmit_FS((uint8_t*)data, strlen(data));
+//}
 
 /* USER CODE END 1 */
 

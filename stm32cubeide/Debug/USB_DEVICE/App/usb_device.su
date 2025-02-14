@@ -1,2 +1,1 @@
-usb_device.c:60:6:USB_SendData	16	static
 usb_device.c:71:6:MX_USB_DEVICE_Init	8	static
