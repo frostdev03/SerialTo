@@ -122,7 +122,6 @@ ipcRenderer.on("serial-data", (event, data) => {
   }
 
   try {
-    // array (?)
     if (!Array.isArray(data)) {
       console.warn("Data bukan array:", data);
       return;
