@@ -1,0 +1,37 @@
+{
+  "name": "deskapp",
+  "version": "0.0.7",
+  "description": "komunikasi serial",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron .",
+    "dev:watch": "npx electronmon --trace-warnings ."
+  },
+  "keywords": [
+    "electron",
+    "js",
+    "desktop"
+  ],
+  "author": "frostdev03",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^26.6.10"
+  },
+  "dependencies": {
+    "serialport": "^10.5.0",
+    "tableify": "^1.1.1",
+    "xlsx": "^0.18.5"
+  },
+  "engines": {
+    "node": "18.16.1",
+    "npm": "9.5.1"
+  },
+  "build": {
+    "appId": "com.jala.app",
+    "productName": "appdesk-baruno",
+    "win": {
+      "target": "nsis"
+    }
+  }
+}
