@@ -74,7 +74,7 @@ document.getElementById("download").addEventListener("click", () => {
 });
 
 // ipcRenderer.on("serial-data", (event, data) => {
-//   console.log("Data diterima (mentah):", data);
+//   console.log("Data diterima (raw):", data);
 
 //   const tableBody = document.querySelector("#data-table tbody");
 //   if (!tableBody) {
@@ -83,23 +83,19 @@ document.getElementById("download").addEventListener("click", () => {
 //   }
 
 //   try {
-//     if (!Array.isArray(data)) {
-//       console.warn("Data bukan array:", data);
-//       return;
-//     }
-
-//     tableBody.innerHTML = "";
-
-//     data.forEach((item) => {
-//       console.log("Menambahkan ke tabel:", item);
-//       const row = document.createElement("tr");
-//       row.innerHTML = `
-//           <td>${item.id}</td>
-//           <td>${item.temperature.toFixed(2)}</td>
-//           <td>${item.humidity.toFixed(2)}</td>
+//     const row = document.createElement("tr");
+//     row.innerHTML = `
+//           <td>${data.measured_at}</td>
+//           <td>${data.rfid_id}</td>
+//           <td>${data.temperature.toFixed(2)}</td>
+//           <td>${data.ph.toFixed(2)}</td>
+//           <td>${data.ec.toFixed(2)}</td>
+//           <td>${data.tds.toFixed(1)}</td>
+//           <td>${data.salinity.toFixed(2)}</td>
+//           <td>${data.do.toFixed(2)}</td>
+//           <td>${data.do_percent.toFixed(2)}</td>
 //         `;
-//       tableBody.appendChild(row);
-//     });
+//     tableBody.appendChild(row);
 
 //     console.log("Tabel berhasil diperbarui!");
 //   } catch (error) {
@@ -108,36 +104,39 @@ document.getElementById("download").addEventListener("click", () => {
 // });
 
 ipcRenderer.on("serial-data", (event, data) => {
-  console.log("Data diterima (mentah):", data);
+  console.log("📡 JSON diterima di frontend:", data);
 
+  // Pastikan elemen tabel ada
   const tableBody = document.querySelector("#data-table tbody");
   if (!tableBody) {
-    console.error("Element data-table tbody tidak ditemukan!");
+    console.error("❌ Tabel tidak ditemukan!");
     return;
   }
 
   try {
-    // Bersihkan tabel sebelum menambahkan data baru
-    // tableBody.innerHTML = "";
-
-    // Tambahkan data ke tabel (data sudah berbentuk objek tunggal)
+    // Buat baris baru untuk data JSON
     const row = document.createElement("tr");
     row.innerHTML = `
-          <td>${data.measured_at}</td>
-          <td>${data.rfid_id}</td>
-          <td>${data.temperature.toFixed(2)}</td>
-          <td>${data.ph.toFixed(2)}</td>
-          <td>${data.ec.toFixed(2)}</td>
-          <td>${data.tds.toFixed(1)}</td>
-          <td>${data.salinity.toFixed(2)}</td>
-          <td>${data.do.toFixed(2)}</td>
-          <td>${data.do_percent.toFixed(2)}</td>
-        `;
-    tableBody.appendChild(row);
+      <td>${data.measured_at}</td>
+      <td>${data.rfid_id}</td>
+      <td>${data.temperature.toFixed(2)}</td>
+      <td>${data.ph.toFixed(2)}</td>
+      <td>${data.ec.toFixed(2)}</td>
+      <td>${data.tds.toFixed(1)}</td>
+      <td>${data.salinity.toFixed(2)}</td>
+      <td>${data.do.toFixed(2)}</td>
+      <td>${data.do_percent.toFixed(2)}</td>
+    `;
 
-    console.log("Tabel berhasil diperbarui!");
+    tableBody.appendChild(row);
+    console.log("✅ Data berhasil ditampilkan di tabel!");
   } catch (error) {
-    console.error("Error parsing atau menampilkan data:", error);
+    console.error(
+      "❌ Error parsing atau menampilkan data:",
+      error,
+      "Data:",
+      data
+    );
   }
 });
 

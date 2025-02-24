@@ -16,9 +16,12 @@
   "author": "frostdev03",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^26.6.10"
+    "electron": "^26.6.10",
+    "electron-builder": "^25.1.8",
+    "electron-packager": "^17.1.2"
   },
   "dependencies": {
+    "electronmon": "^2.0.3",
     "serialport": "^10.5.0",
     "tableify": "^1.1.1",
     "xlsx": "^0.18.5"

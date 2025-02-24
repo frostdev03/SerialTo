@@ -16,70 +16,154 @@ function createWindow() {
   });
 
   win.loadFile("index.html");
+  updatePortList();
+}
 
+function updatePortList() {
   SerialPort.list()
     .then((ports) => {
       const portNames = ports.map((p) => p.path);
-      console.log("Port yang tersedia:", portNames);
+      // console.log("Port yang tersedia:", portNames);
       win.webContents.send("available-ports", portNames);
     })
     .catch((err) => console.error("Gagal mendapatkan daftar port:", err));
 }
 
+// Perbarui daftar port setiap 2 detik
+setInterval(updatePortList, 2000);
+
+// function openPort(selectedPort) {
+//   port = new SerialPort({
+//     path: selectedPort,
+//     baudRate: 19200,
+//     autoOpen: false,
+//   });
+
+//   port.open((err) => {
+//     if (err) {
+//       console.error("Gagal membuka port:", err.message);
+//       return;
+//     }
+//     // console.log("Port terbuka:", selectedPort);
+
+//     // const parser = port.pipe(new ReadlineParser({ delimiter: "\r\n" }));
+
+//     console.log("Menjalankan parser.on('data')...");
+//     // parser.on("data", (data) => {
+//     //   console.log("RAW DATA DITERIMA:", data.toString());
+//     //   win.webContents.send("serial-data", data.toString()); // Kirim ke frontend
+//     // });
+//   });
+
+//   const parser = port.pipe(new ReadlineParser({ delimiter: "\r\n" }));
+
+//   parser.on("data", (data) => {
+//     try {
+//       console.log("Raw Data:", data);
+
+//       const jsonMatches = data.match(/\{.*?\}/g);
+
+//       // const jsonMatches = data.match(/\{[\s\S]*?\}/g);
+
+//       if (!jsonMatches) {
+//         console.warn("Tidak ada JSON yang ditemukan, data diabaikan:", data);
+//         return;
+//       }
+
+//       jsonMatches.forEach((jsonStr) => {
+//         try {
+//           const jsonData = JSON.parse(jsonStr);
+//           console.log("Parsed JSON:", jsonData);
+//           win.webContents.send("serial-data", jsonData);
+//         } catch (error) {
+//           console.error("Gagal parse JSON:", error, "Data JSON:", jsonStr);
+//         }
+//       });
+//     } catch (error) {
+//       console.error("Kesalahan parsing batch data:", error);
+//     }
+//   });
+
+//   console.log("Port terbuka:", selectedPort);
+// }
+
 function openPort(selectedPort) {
   port = new SerialPort({
     path: selectedPort,
     baudRate: 19200,
+    autoOpen: false,
   });
 
-  const parser = port.pipe(new ReadlineParser({ delimiter: "\r\n" }));
+  port.open((err) => {
+    if (err) {
+      console.error("Gagal membuka port:", err.message);
+      return;
+    }
+    console.log("Port terbuka:", selectedPort);
 
-  //   parser.on("data", (data) => {
-  //     try {
-  //       console.log("Data mentah dari serial:", data);
+    const parser = port.pipe(new ReadlineParser({ delimiter: "\r\n" }));
 
-  //       const jsonMatch = data.match(/\{.*\}/);
+    // port.on("data", (data) => {
+    //   try {
+    //     let rawData = data.toString().trim(); // Konversi Buffer ke String
+    //     console.log("Raw Data:", rawData);
+    //     const jsonMatches = data.match(/\{.*?\}/g);
 
-  //       if (!jsonMatch) {
-  //         console.warn("Data bukan JSON, dilewati:", data);
-  //         return;
-  //       }
+    //     if (!jsonMatches) {
+    //       console.warn("Tidak ada JSON yang ditemukan, data diabaikan:", data);
+    //       return;
+    //     }
 
-  //       const jsonData = JSON.parse(jsonMatch[0]); // Ambil JSON yang valid
-  //       console.log("Data setelah parse di main.js:", jsonData);
+    //     jsonMatches.forEach((jsonStr) => {
+    //       try {
+    //         const jsonData = JSON.parse(jsonStr);
+    //         console.log("Parsed JSON:", jsonData);
+    //         win.webContents.send("serial-data", jsonData);
+    //       } catch (error) {
+    //         console.error("Gagal parse JSON:", error, "Data JSON:", jsonStr);
+    //       }
+    //     });
+    //   } catch (error) {
+    //     console.error("Kesalahan parsing batch data:", error);
+    //   }
+    // });
 
-  //       win.webContents.send("serial-data", jsonData);
-  //     } catch (error) {
-  //       console.error("Gagal parse data:", error);
-  //     }
-  //   });
+    // port.on("data", (data) => {
+    //   let rawData = data.toString().trim(); // Konversi Buffer ke String
 
-  parser.on("data", (data) => {
-    try {
-      console.log("Raw Data:", data);
+    //   // Cek apakah data mengandung JSON ({}), jika tidak, abaikan
+    //   if (!rawData.includes("{") || !rawData.includes("}")) {
+    //     console.warn("⚠️ Data bukan JSON, diabaikan:", rawData);
+    //     return;
+    //   }
 
-      const jsonMatches = data.match(/\{.*?\}/g);
+    //   console.log("📡 Data JSON Ditemukan:", rawData);
+    // });
 
-      if (!jsonMatches) {
-        console.warn("Tidak ada JSON yang ditemukan, data diabaikan:", data);
+    port.on("data", (data) => {
+      let rawData = data.toString().trim();
+
+      // Hapus karakter aneh (non-printable ASCII)
+      rawData = rawData.replace(/[^\x20-\x7E]+/g, "");
+
+      if (!rawData.includes("{") || !rawData.includes("}")) {
+        console.warn("⚠️ Data bukan JSON, diabaikan:", rawData);
         return;
       }
 
-      jsonMatches.forEach((jsonStr) => {
-        try {
-          const jsonData = JSON.parse(jsonStr);
-          console.log("Parsed JSON:", jsonData);
-          win.webContents.send("serial-data", jsonData);
-        } catch (error) {
-          console.error("Gagal parse JSON:", error, "Data JSON:", jsonStr);
-        }
-      });
-    } catch (error) {
-      console.error("Kesalahan parsing batch data:", error);
-    }
-  });
+      try {
+        let jsonData = JSON.parse(rawData);
+        console.log("✅ Parsed JSON setelah filtering:", jsonData);
 
-  console.log("Port terbuka:", selectedPort);
+        // **Tambahkan log sebelum mengirim ke frontend**
+        console.log("📡 Mengirim JSON ke frontend:", JSON.stringify(jsonData));
+
+        win.webContents.send("serial-data", jsonData);
+      } catch (error) {
+        console.error("❌ Gagal parse JSON:", error, "Data JSON:", rawData);
+      }
+    });
+  });
 }
 
 ipcMain.on("select-port", (event, selectedPort) => {
