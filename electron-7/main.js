@@ -153,14 +153,13 @@ function openPort(selectedPort) {
 
       try {
         let jsonData = JSON.parse(rawData);
-        console.log("✅ Parsed JSON setelah filtering:", jsonData);
+        console.log("Parsed JSON setelah filtering:", jsonData);
 
-        // **Tambahkan log sebelum mengirim ke frontend**
-        console.log("📡 Mengirim JSON ke frontend:", JSON.stringify(jsonData));
+        console.log("Mengirim JSON ke frontend:", JSON.stringify(jsonData));
 
         win.webContents.send("serial-data", jsonData);
       } catch (error) {
-        console.error("❌ Gagal parse JSON:", error, "Data JSON:", rawData);
+        console.error("Gagal parse JSON:", error, "Data JSON:", rawData);
       }
     });
   });
