@@ -1,82 +1,61 @@
-// import path from 'path'
-// import { app, ipcMain } from 'electron'
-// import serve from 'electron-serve'
-// import { createWindow } from './helpers'
+import path from "path";
+import { app, BrowserWindow, ipcMain, dialog } from "electron";
+import serve from "electron-serve";
+import { createWindow } from "./helpers";
+import { SerialPort } from "serialport";
+import * as XLSX from "xlsx";
+import fs from "fs";
 
-// const isProd = process.env.NODE_ENV === 'production'
-
-// if (isProd) {
-//   serve({ directory: 'app' })
-// } else {
-//   app.setPath('userData', `${app.getPath('userData')} (development)`)
-// }
-
-// ;(async () => {
-//   await app.whenReady()
-
-//   const mainWindow = createWindow('main', {
-//     width: 1000,
-//     height: 600,
-//     webPreferences: {
-//       preload: path.join(__dirname, 'preload.js'),
-//     },
-//   })
-
-//   if (isProd) {
-//     await mainWindow.loadURL('app://./home')
-//   } else {
-//     const port = process.argv[2]
-//     await mainWindow.loadURL(`http://localhost:${port}/home`)
-//     mainWindow.webContents.openDevTools()
-//   }
-// })()
-
-// app.on('window-all-closed', () => {
-//   app.quit()
-// })
-
-// ipcMain.on('message', async (event, arg) => {
-//   event.reply('message', `${arg} World!`)
-// })
-
-const { dialog, app, BrowserWindow, ipcMain } = require("electron");
-const { SerialPort, ReadlineParser } = require("serialport");
-const path = require("path");
-
-let win;
+const isProd = process.env.NODE_ENV === "production";
+let mainWindow;
 let port;
 
-function createWindow() {
-  win = new BrowserWindow({
-    width: 800,
+if (isProd) {
+  serve({ directory: "app" });
+} else {
+  app.setPath("userData", `${app.getPath("userData")} (development)`);
+}
+
+async function createMainWindow() {
+  mainWindow = createWindow("main", {
+    width: 1000,
     height: 600,
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
+      preload: path.join(__dirname, "preload.js"),
+      nodeIntegration: false,
+      contextIsolation: true,
     },
   });
 
-  // win.loadFile("index.html");
-  win.loadFile(path.join(__dirname, "../renderer/index.html"));
-  win.webContents.once("did-finish-load", () => {
-    updatePortList();
-  });
-
-  // updatePortList();
+  if (isProd) {
+    await mainWindow.loadURL("app:/renderer/pages/home");
+  } else {
+    const port = process.argv[2];
+    await mainWindow.loadURL(`http://localhost:${port}/home`);
+    mainWindow.webContents.openDevTools();
+  }
 }
 
-function updatePortList() {
-  SerialPort.list()
-    .then((ports) => {
-      const portNames = ports.map((p) => p.path);
-      // console.log("Port yang tersedia:", portNames);
-      win.webContents.send("available-ports", portNames);
-    })
-    .catch((err) => console.error("Gagal mendapatkan daftar port:", err));
+app.whenReady().then(createMainWindow);
+
+app.on("window-all-closed", () => {
+  app.quit();
+});
+
+//get port
+async function updatePortList() {
+  try {
+    const ports = await SerialPort.list();
+    const portNames = ports.map((p) => p.path);
+    mainWindow.webContents.send("available-ports", portNames);
+  } catch (err) {
+    console.error("Gagal mendapatkan daftar port:", err);
+  }
 }
 
 setInterval(updatePortList, 2000);
 
+//selected port
 function openPort(selectedPort) {
   port = new SerialPort({
     path: selectedPort,
@@ -91,13 +70,12 @@ function openPort(selectedPort) {
     }
     console.log("Port terbuka:", selectedPort);
 
-    // const parser = port.pipe(new ReadlineParser({ delimiter: "\r\n" }));
-
     port.on("data", (data) => {
       let rawData = data.toString().trim();
-
-      // filter
-      rawData = rawData.replace(/[^\x20-\x7E]+/g, "");
+      rawData = rawData.replace(
+        /[^       rawData = rawData.replace(/[^\x20-\x7E]+/g,
+        ""
+      );
 
       if (!rawData.includes("{") || !rawData.includes("}")) {
         console.warn("Data bukan JSON, diabaikan:", rawData);
@@ -105,27 +83,9 @@ function openPort(selectedPort) {
       }
 
       try {
-        let jsonData = JSON.parse(rawData);
-
-        // let date = new Date(jsonData.measured_at);
-        // let formattedDate = new Intl.DateTimeFormat("id-ID", {
-        //   weekday: "long",
-        //   year: "numeric",
-        //   month: "long",
-        //   day: "2-digit",
-        //   hour: "2-digit",
-        //   minute: "2-digit",
-        //   second: "2-digit",
-        //   timeZoneName: "short",
-        // }).format(date);
-
-        // jsonData.measured_at = formattedDate;
-
-        console.log("Parsed JSON setelah filtering:", jsonData);
-
+        let jsonData = JSON.parse(rawData); //data dari baaruni
         console.log("Mengirim JSON ke frontend:", JSON.stringify(jsonData));
-
-        win.webContents.send("serial-data", jsonData);
+        mainWindow.webContents.send("serial-data", jsonData);
       } catch (error) {
         console.error("Gagal parse JSON:", error, "Data JSON:", rawData);
       }
@@ -133,6 +93,7 @@ function openPort(selectedPort) {
   });
 }
 
+//ganti port
 ipcMain.on("select-port", (event, selectedPort) => {
   if (port) {
     port.close(() => {
@@ -144,6 +105,7 @@ ipcMain.on("select-port", (event, selectedPort) => {
   }
 });
 
+//kirim data serial
 ipcMain.on("send-serial", (event, message) => {
   console.log("Mengirim ke STM32:", message);
   if (port && port.isOpen) {
@@ -157,18 +119,30 @@ ipcMain.on("send-serial", (event, message) => {
   }
 });
 
-ipcMain.on("save-excel", async (event) => {
+//konversi ke excel
+ipcMain.on("save-excel", async (event, tableData) => {
   const result = await dialog.showSaveDialog({
     title: "Simpan Data Sensor",
     defaultPath: path.join(app.getPath("desktop"), "Data_Sensor.xlsx"),
     filters: [{ name: "Excel Files", extensions: ["xlsx"] }],
   });
 
-  if (!result.canceled && result.filePath) {
-    event.sender.send("save-excel-path", result.filePath);
-  } else {
-    event.sender.send("save-excel-path", null);
+  if (result.canceled || !result.filePath) {
+    event.sender.send("save-excel-error", "Penyimpanan dibatalkan.");
+    return;
+  }
+
+  try {
+    const worksheet = XLSX.utils.json_to_sheet(tableData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Data Sensor");
+
+    XLSX.writeFile(workbook, result.filePath);
+    console.log("File Excel berhasil disimpan:", result.filePath);
+
+    event.sender.send("save-excel-success", result.filePath);
+  } catch (error) {
+    console.error("Gagal menyimpan file Excel:", error);
+    event.sender.send("save-excel-error", error.message);
   }
 });
-
-app.whenReady().then(createWindow);
