@@ -4,7 +4,6 @@ import serve from "electron-serve";
 import { createWindow } from "./helpers";
 import { SerialPort } from "serialport";
 import * as XLSX from "xlsx";
-import fs from "fs";
 
 const isProd = process.env.NODE_ENV === "production";
 let mainWindow;
