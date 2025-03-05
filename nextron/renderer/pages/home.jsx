@@ -1,4 +1,13 @@
 import React, { useEffect, useState } from "react";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
 export default function SerialMonitor() {
   const [ports, setPorts] = useState([]);
@@ -6,6 +15,7 @@ export default function SerialMonitor() {
   const [debugMessages, setDebugMessages] = useState([]);
   const [tableData, setTableData] = useState([]);
   const [inputValue, setInputValue] = useState("");
+  const [showChart, setShowChart] = useState(false);
 
   useEffect(() => {
     window.ipc.on("available-ports", (event, ports) => {
@@ -86,6 +96,9 @@ export default function SerialMonitor() {
         <button onClick={requestData}>Get Data</button>
         <button onClick={clearTable}>Clear</button>
         <button onClick={saveToExcel}>Download</button>
+        <button onClick={() => setShowChart(!showChart)}>
+          {showChart ? "Hide Chart" : "Show Chart"}
+        </button>
       </div>
 
       <table className="table-fixed w-full text-left">
@@ -160,6 +173,41 @@ export default function SerialMonitor() {
           ))}
         </tbody>
       </table>
+
+      {showChart && (
+        <ResponsiveContainer width="100%" height={300}>
+          <AreaChart data={tableData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="measured_at" />
+            <YAxis />
+            <Tooltip />
+            <Area
+              type="monotone"
+              dataKey="temperature"
+              stroke="#8884d8"
+              fill="#8884d8"
+            />
+            <Area
+              type="monotone"
+              dataKey="ph"
+              stroke="#82ca9d"
+              fill="#82ca9d"
+            />
+            <Area
+              type="monotone"
+              dataKey="salinity"
+              stroke="#ffc658"
+              fill="#ffc658"
+            />
+            <Area
+              type="monotone"
+              dataKey="do"
+              stroke="#283da8"
+              fill="#283da8"
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      )}
 
       <div
         style={{

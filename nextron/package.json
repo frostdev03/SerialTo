@@ -24,6 +24,7 @@
     "electron-store": "^8.2.0",
     "electronmon": "^2.0.3",
     "fs": "^0.0.1-security",
+    "recharts": "^2.15.1",
     "serialport": "^13.0.0",
     "tableify": "^1.1.1",
     "xlsx": "^0.18.5"
