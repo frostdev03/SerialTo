@@ -1,0 +1,46 @@
+{
+  "private": true,
+  "name": "baruno-data-explorer",
+  "description": "My application description",
+  "version": "1.0.0",
+  "author": "JALA Pte. Ltd.",
+  "main": "app/background.js",
+  "scripts": {
+    "dev": "nextron",
+    "build": "nextron build",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "dependencies": {
+    "@radix-ui/react-icons": "^1.3.2",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "electron-serve": "^1.3.0",
+    "electron-store": "^8.2.0",
+    "fs": "^0.0.1-security",
+    "lodash": "^4.17.21",
+    "lucide-react": "^0.475.0",
+    "react-icons": "^5.5.0",
+    "react-toastify": "^11.0.5",
+    "recharts": "^2.15.1",
+    "serialport": "^13.0.0",
+    "shadcn-ui": "^0.9.4",
+    "tailwind-merge": "^3.0.2",
+    "tailwind-variants": "^0.3.1",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.16",
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
+    "autoprefixer": "^10.4.20",
+    "electron": "^34.0.0",
+    "electron-builder": "^24.13.3",
+    "next": "^14.2.4",
+    "nextron": "^9.5.0",
+    "postcss": "^8.5.3",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.8.2"
+  }
+}
